@@ -14,7 +14,7 @@ let make = () => {
   let (input, setInput) = useState(() => "")
   Js.Console.log2("messages", messages)
 
-  let addMessage = (content, sender) => {
+  let addMessage = async (content, sender) => {
     setMessages(prevMessages => {
       let id = prevMessages->Belt.Array.length
       let newMessage = {id, content, sender}
@@ -29,12 +29,16 @@ let make = () => {
   let onSubmit = (e: ReactEvent.Form.t) => {
     ReactEvent.Form.preventDefault(e)
     if input != "" {
-      addMessage(input, "user")
+      addMessage(input, "user")->ignore
       setInput(_old => "")
 
       // Add a response after a short delay (simulate chatbot)
       Js.Global.setTimeout(() => {
-        addMessage("This is a simulated response.", "bot")
+        let run = async () => {
+          let response = await Server.chat(input)
+          addMessage(response.content, "bot")
+        }
+        run()->ignore
       }, 1000) |> ignore
     }
   }
