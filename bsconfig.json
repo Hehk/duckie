@@ -1,18 +1,17 @@
 {
-    "name": "duckie",
-    "sources": {
-        "dir": "src",
-        "suddirs": true
-    },
-    "suffix": ".bs.js",
-    "jsx": {
-        "version": 4,
-        "mode": "classic"
-
-    },
-    "package-specs": {
-        "module": "es6",
-        "suffix": ".bs.js"
-    },
-    "bs-dependencies": ["@rescript/react"]
+  "name": "duckie",
+  "sources": {
+    "dir": "src",
+    "suddirs": true
+  },
+  "suffix": ".bs.js",
+  "jsx": {
+    "version": 4,
+    "mode": "classic"
+  },
+  "package-specs": {
+    "module": "es6",
+    "suffix": ".bs.js"
+  },
+  "bs-dependencies": ["@rescript/react"]
 }

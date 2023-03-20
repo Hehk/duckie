@@ -1,6 +1,5 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import createRescriptPlugin from '@jihchi/vite-plugin-rescript'
+import { defineConfig } from "vite"
+import createRescriptPlugin from "@jihchi/vite-plugin-rescript"
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
@@ -25,4 +24,4 @@ export default defineConfig(async () => ({
     // produce sourcemaps for debug builds
     sourcemap: !!process.env.TAURI_DEBUG,
   },
-}));
+}))
