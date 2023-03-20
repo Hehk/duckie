@@ -1,13 +1,10 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-
-const mobile =
-  process.env.TAURI_PLATFORM === "android" ||
-  process.env.TAURI_PLATFORM === "ios";
+import createRescriptPlugin from '@jihchi/vite-plugin-rescript'
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
-  plugins: [react()],
+  plugins: [createRescriptPlugin()],
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   // prevent vite from obscuring rust errors
