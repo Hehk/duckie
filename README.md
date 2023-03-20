@@ -1,7 +1,11 @@
-# Tauri + React + Typescript
+# Duckie – WIP
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Making a friend!
 
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## General Plan
+- Create a chat interface for the Alpaca model
+- Be able to ask it coding questions
+- Setup a way to load a repo into the model
+- Have the automatically watch the repo you are working on
+- Have the model watch errors and linting issues, providing quick fixes for different things going on
+- Essentially make the best rubber duckie for coding
