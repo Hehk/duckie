@@ -91,10 +91,13 @@ def generate(prompt,
 app = FastAPI()
 
 
-@app.get("/chat")
-async def chat(content: str):
-    print("Input:", content)
-    output = generate(content)
+class Message(BaseModel):
+    content: str
+
+
+@app.post("/chat")
+async def chat(message: Message):
+    output = generate(message.content)
     return {"output": output}
 
 if __name__ == "__main__":
