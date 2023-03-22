@@ -1,41 +1,101 @@
+import torch
 from fastapi import FastAPI
 from pydantic import BaseModel
 from peft import PeftModel
-from transformers import LLaMATokenizer, LLaMAForCausalLM, GenerationConfig
+from transformers import LlamaTokenizer, LlamaForCausalLM, GenerationConfig
 
-tokenizer = LLaMATokenizer.from_pretrained("decapoda-research/llama-7b-hf")
-model = LLaMAForCausalLM.from_pretrained(
-    "decapoda-research/llama-7b-hf",
-    load_in_8bit=True,
-    device_map="auto",
-)
-model = PeftModel.from_pretrained(model, "tloen/alpaca-lora-7b")
+LOAD_8BIT = False
+BASE_MODEL = "decapoda-research/llama-7b-hf"
+LORA_WEIGHTS = "tloen/alpaca-lora-7b"
 
-config = GenerationConfig(
-    temperature=0.1,
-    top_p=0.75,
-    num_beams=4,
-)
+if torch.cuda.is_available():
+    device = "cuda"
+else:
+    device = "cpu"
+
+try:
+    if torch.backends.mps.is_available():
+        device = "mps"
+except:
+    pass
+
+tokenizer = LlamaTokenizer.from_pretrained("decapoda-research/llama-7b-hf")
+
+if device == "cuda":
+    model = LlamaForCausalLM.from_pretrained(
+        BASE_MODEL,
+        load_in_8bit=LOAD_8BIT,
+        torch_dtype=torch.float16,
+        device_map="auto",
+    )
+    model = PeftModel.from_pretrained(
+        model,
+        LORA_WEIGHTS,
+        torch_dtype=torch.float16,
+    )
+elif device == "mps":
+    model = LlamaForCausalLM.from_pretrained(
+        BASE_MODEL,
+        device_map={"": device},
+        torch_dtype=torch.float16,
+    )
+    model = PeftModel.from_pretrained(
+        model,
+        LORA_WEIGHTS,
+        device_map={"": device},
+        torch_dtype=torch.float16,
+    )
+else:
+    model = LlamaForCausalLM.from_pretrained(
+        BASE_MODEL, device_map={"": device}, low_cpu_mem_usage=True
+    )
+    model = PeftModel.from_pretrained(
+        model,
+        LORA_WEIGHTS,
+        device_map={"": device},
+    )
+
+if not LOAD_8BIT:
+    model.half()
 
 
-def generate(input):
-    input_ids = tokenizer(input, return_tensors="pt").input_ids
-    output = model.generate(input_ids, generation_config=config, return_dict_in_generate=True,
-                            output_scores=True, max_new_tokens=256)
-    for s in output.sequences:
-        return tokenizer.decode(s)
+def generate(prompt,
+             temperature=0.1,
+             top_p=0.75,
+             top_k=40,
+             num_beams=4,
+             max_new_tokens=128,
+             **kwargs,):
+    inputs = tokenizer(prompt, return_tensors="pt")
+    input_ids = inputs["input_ids"].to(device)
+    generation_config = GenerationConfig(
+        temperature=temperature,
+        top_p=top_p,
+        top_k=top_k,
+        num_beams=num_beams,
+        **kwargs,
+    )
+    with torch.no_grad():
+        generation_output = model.generate(
+            input_ids=input_ids,
+            generation_config=generation_config,
+            return_dict_in_generate=True,
+            output_scores=True,
+            max_new_tokens=max_new_tokens,
+        )
+    s = generation_output.sequences[0]
+    output = tokenizer.decode(s)
+    return output.split(prompt)[1].strip()
 
 
 app = FastAPI()
 
 
-class Message(BaseModel):
-    content: str
-
-
-@app.post("/chat")
-async def chat(message: Message):
-    return {"content": message.content}
+@app.get("/chat")
+async def chat(content: str):
+    print("Input:", content)
+    output = generate(content)
+    return {"output": output}
 
 if __name__ == "__main__":
     import uvicorn
