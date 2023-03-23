@@ -40,7 +40,7 @@ export default function SidePanel() {
     })
   }
 
-  return <div className="bg-zinc-900 text-zinc-50 h-screen  w-60 p-2 z-10">
+  return <div className="bg-zinc-900 h-full text-zinc-50 w-60 p-2 z-10">
     <div>
       <h2 className="font-bold uppercase">{activeWorkspace.name}</h2>
       {Object.values(activeWorkspace.chats).map((chat) => (

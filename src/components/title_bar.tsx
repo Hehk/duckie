@@ -1,26 +1,29 @@
 import { useAtom } from "jotai"
-import { workspaceAtom } from "../app"
+import { useEffect } from "react"
+import { workspaceAtom, WorkspaceState } from "../app"
+import { appWindow } from "@tauri-apps/api/window"
+
+function getRoute({ workspaces, selectedWorkspace, selectedChat }: WorkspaceState) {
+  let route: string[] = []
+
+  if (!selectedWorkspace) return route
+  const workspace = workspaces[selectedWorkspace]
+  if (!workspace) return route
+  route.push(workspace.name)
+
+  if (!selectedChat) return route
+  const chat = workspace.chats[selectedChat]
+  if (!chat) return route
+  route.push(chat.name)
+
+  return route
+}
 
 export default function TitleBar() {
   const [workspaceState] = useAtom(workspaceAtom)
-  const { selectedWorkspace, selectedChat } = workspaceState
+  const route = getRoute(workspaceState)
+  const title = route.join(' / ')
 
-  let name = "Welcome!"
-  if (selectedWorkspace && selectedChat) {
-    console.log(workspaceState.workspaces[selectedWorkspace], selectedChat)
-    const workspace = workspaceState.workspaces[selectedWorkspace]
-    const chat = workspace?.chats[selectedChat]
-    if (workspace && chat) {
-      name = `${workspace.name} / ${chat.name}`
-    }
-  } else if (selectedWorkspace) {
-    const workspace = workspaceState.workspaces[selectedWorkspace]
-    if (workspace) {
-      name = workspace.name
-    }
-  }
-
-  return <div className="flex p-2 bg-zinc-900 text-zinc-50">
-    <h1 className="m-auto">{name}</h1>
-  </div>
+  appWindow.setTitle(title)
+  return null
 }

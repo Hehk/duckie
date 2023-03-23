@@ -74,11 +74,11 @@ export const isSidePanelOpenAtom = atom(false)
 
 export default function App() {
   return (
-    <div className="flex flex-row">
-      <ActivityPanel />
-      <SidePanel />
-      <div className="h-screen flex flex-col flex-grow bg-zinc-800 font-mono">
-        <TitleBar />
+    <div className="h-screen flex flex-col">
+      <TitleBar />
+      <div className="flex flex-row flex-grow">
+        <ActivityPanel />
+        <SidePanel />
         <ChatPanel />
       </div>
     </div >

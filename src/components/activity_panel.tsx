@@ -42,7 +42,7 @@ export default function ActivityPanel() {
     })
   }
 
-  return <div className="h-screen w-16 bg-zinc-900 flex flex-col justify-between">
+  return <div className="h-full w-16 bg-zinc-900 flex flex-col justify-between">
     <div>
       {Object.values(workspaces).map((workspace, i) => (
         <ActivityPanelButton onClick={focusWorkspace(workspace.id)} key={workspace.id}>{i + 1}</ActivityPanelButton>
