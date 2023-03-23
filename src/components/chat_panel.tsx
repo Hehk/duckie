@@ -45,9 +45,9 @@ export default function ChatPanel() {
 
   return (
     <div className="flex flex-col flex-grow">
-      <div className="overflow-auto p-4 space-y-4 flex-grow">
+      <div className="overflow-auto space-y-4 flex-grow">
         {messages.map((message) => (
-          <div key={message.id} className="border p-2 rounded">
+          <div key={message.id} className="text-zinc-50 p-2 last:border-b border-zinc-900" >
             {message.text}
           </div>
         ))}

@@ -5,6 +5,10 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    fontFamily: {
+      sans: ["Inter", "sans-serif"],
+      mono: ["JetBrains Mono", "monospace"],
+    },
     extend: {},
   },
   plugins: [],
