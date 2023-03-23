@@ -4,18 +4,8 @@ import { workspaceAtom, Message } from "../app";
 
 export default function ChatPanel() {
   const [{ workspaces, selectedWorkspace, selectedChat }, setWorkspace] = useAtom(workspaceAtom);
-  const messages = workspaces[selectedWorkspace].chats[selectedChat].messages;
-  const addMessage = (message: Message) => {
-    setWorkspace((prevWorkspace) => {
-      const newWorkspace = { ...prevWorkspace };
-      const oldMessages = prevWorkspace.workspaces[selectedWorkspace].chats[selectedChat].messages;
-      newWorkspace.workspaces[selectedWorkspace].chats[selectedChat].messages = [...oldMessages, message];
-      return newWorkspace;
-    })
-  }
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
   const handleKeyPress = useCallback(
     (event: React.KeyboardEvent) => {
       if (event.key === "Enter" && !event.metaKey) {
@@ -42,6 +32,28 @@ export default function ChatPanel() {
       inputRef.current.focus();
     }
   }, []);
+
+
+  if (!selectedWorkspace || !selectedChat) {
+    return null;
+  }
+
+  const workspace = workspaces[selectedWorkspace];
+  if (!workspace) return null;
+
+  const chat = workspace.chats[selectedChat];
+  if (!chat) return null;
+
+  const messages = chat.messages;
+  const addMessage = (message: Message) => {
+    setWorkspace((prevWorkspace) => {
+      const newWorkspace = { ...prevWorkspace };
+      const oldMessages = prevWorkspace.workspaces[selectedWorkspace].chats[selectedChat].messages;
+      newWorkspace.workspaces[selectedWorkspace].chats[selectedChat].messages = [...oldMessages, message];
+      return newWorkspace;
+    })
+  }
+
 
   return (
     <div className="flex flex-col flex-grow">

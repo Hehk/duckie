@@ -4,6 +4,7 @@ import TitleBar from './components/title_bar'
 import ChatPanel from './components/chat_panel'
 import { atom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
+import ActivityPanel from './components/activity_panel'
 
 // Simple app state
 export type Message = {
@@ -32,13 +33,13 @@ export type Chat = {
 export type Workspace = {
   id: WorkspaceId;
   name: string;
-  chats: Record<ChatId, Chat>;
+  chats: Record<ChatId, Chat | undefined>;
 }
 
 export type WorkspaceState = {
-  workspaces: Record<WorkspaceId, Workspace>;
-  selectedWorkspace: WorkspaceId;
-  selectedChat: ChatId;
+  workspaces: Record<WorkspaceId, Workspace | undefined>;
+  selectedWorkspace?: WorkspaceId;
+  selectedChat?: ChatId;
 }
 
 const initialWorkspaceId = createWorkspaceId()
@@ -73,10 +74,13 @@ export const isSidePanelOpenAtom = atom(false)
 
 export default function App() {
   return (
-    <div className="h-screen flex flex-col bg-zinc-800 font-mono">
+    <div className="flex flex-row">
+      <ActivityPanel />
       <SidePanel />
-      <TitleBar />
-      <ChatPanel />
+      <div className="h-screen flex flex-col flex-grow bg-zinc-800 font-mono">
+        <TitleBar />
+        <ChatPanel />
+      </div>
     </div >
   )
 }
