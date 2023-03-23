@@ -3,6 +3,7 @@ import SidePanel from './components/side_panel'
 import TitleBar from './components/title_bar'
 import ChatPanel from './components/chat_panel'
 import { atom } from 'jotai'
+import { atomWithStorage } from 'jotai/utils'
 
 // Simple app state
 export type Message = {
@@ -17,10 +18,10 @@ function generateUniqueId() {
 }
 
 // type brand for chat id and workspace id
-type ChatId = string & { _brand: 'chat' }
-const createChatId = () => generateUniqueId() as ChatId
-type WorkspaceId = string & { _brand: 'workspace' }
-const createWorkspaceId = () => generateUniqueId() as WorkspaceId
+export type ChatId = string & { _brand: 'chat' }
+export const createChatId = () => generateUniqueId() as ChatId
+export type WorkspaceId = string & { _brand: 'workspace' }
+export const createWorkspaceId = () => generateUniqueId() as WorkspaceId
 
 export type Chat = {
   id: ChatId;
@@ -66,7 +67,7 @@ const initialWorkspaceState: WorkspaceState = {
 }
 
 // app state
-export const workspaceAtom = atom<WorkspaceState>(initialWorkspaceState)
+export const workspaceAtom = atomWithStorage<WorkspaceState>('workspaceState', initialWorkspaceState)
 
 export const isSidePanelOpenAtom = atom(false)
 
