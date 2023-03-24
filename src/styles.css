@@ -20,3 +20,61 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
+
+body {
+  /* @apply bg-dark-3; */
+  background-image: linear-gradient(45deg,
+      hsl(212deg 100% 92%) 0%,
+      hsl(220deg 96% 91%) 5%,
+      hsl(229deg 92% 90%) 10%,
+      hsl(236deg 89% 89%) 14%,
+      hsl(244deg 87% 88%) 19%,
+      hsl(253deg 82% 87%) 24%,
+      hsl(261deg 81% 86%) 29%,
+      hsl(269deg 77% 85%) 33%,
+      hsl(277deg 73% 84%) 38%,
+      hsl(286deg 69% 83%) 43%,
+      hsl(294deg 66% 82%) 48%,
+      hsl(302deg 62% 80%) 52%,
+      hsl(310deg 58% 79%) 57%,
+      hsl(318deg 55% 78%) 62%,
+      hsl(326deg 52% 77%) 67%,
+      hsl(335deg 49% 76%) 71%,
+      hsl(342deg 45% 75%) 76%,
+      hsl(351deg 42% 74%) 81%,
+      hsl(359deg 39% 73%) 86%,
+      hsl(7deg 35% 72%) 90%,
+      hsl(16deg 31% 71%) 95%,
+      hsl(24deg 28% 70%) 100%);
+}
+
+gradient {
+  background-image: linear-gradient(50deg,
+      hsl(212deg 100% 92%) 0%,
+      hsl(247deg 84% 87%) 20%,
+      hsl(280deg 72% 83%) 29%,
+      hsl(315deg 57% 79%) 36%,
+      hsl(349deg 42% 74%) 43%,
+      hsl(24deg 28% 70%) 50%,
+      hsl(23deg 37% 66%) 57%,
+      hsl(22deg 46% 63%) 64%,
+      hsl(22deg 55% 59%) 71%,
+      hsl(21deg 64% 56%) 80%,
+      hsl(20deg 72% 52%) 100%);
+}
+
+hover:gradient:hover {
+  background-color: transparent;
+  background-image: linear-gradient(50deg,
+      hsl(212deg 100% 92%) 0%,
+      hsl(247deg 84% 87%) 20%,
+      hsl(280deg 72% 83%) 29%,
+      hsl(315deg 57% 79%) 36%,
+      hsl(349deg 42% 74%) 43%,
+      hsl(24deg 28% 70%) 50%,
+      hsl(23deg 37% 66%) 57%,
+      hsl(22deg 46% 63%) 64%,
+      hsl(22deg 55% 59%) 71%,
+      hsl(21deg 64% 56%) 80%,
+      hsl(20deg 72% 52%) 100%);
+}

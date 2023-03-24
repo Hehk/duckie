@@ -3,7 +3,7 @@ import { useAtom } from 'jotai'
 import { workspaceAtom, createChatId, createWorkspaceId, WorkspaceId } from '../app'
 
 function ActivityPanelButton({ ...props }) {
-  return <button {...props} className="m-2 mt-0 first:mt-2 w-12 h-12 bg-zinc-700 hover:bg-purple-600 rounded text-center text-zinc-50 text-xl" />
+  return <button {...props} className="m-2 mt-0 first:mt-2 w-16 h-16 rounded text-center text-dark-1 text-2xl" />
 }
 
 export default function ActivityPanel() {
@@ -42,8 +42,11 @@ export default function ActivityPanel() {
     })
   }
 
-  return <div className="h-full w-16 bg-zinc-900 flex flex-col justify-between">
+  return <div className="h-full w-20 flex flex-col justify-between">
     <div>
+
+      {/* Titlebar buttons */}
+      <div className="mt-8" />
       {Object.values(workspaces).map((workspace, i) => (
         <ActivityPanelButton onClick={focusWorkspace(workspace.id)} key={workspace.id}>{i + 1}</ActivityPanelButton>
       ))}

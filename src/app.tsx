@@ -2,7 +2,7 @@ import { useState } from 'react'
 import SidePanel from './components/side_panel'
 import TitleBar from './components/title_bar'
 import ChatPanel from './components/chat_panel'
-import { atom } from 'jotai'
+import { atom, useAtom } from 'jotai'
 import { atomWithStorage } from 'jotai/utils'
 import ActivityPanel from './components/activity_panel'
 
@@ -73,14 +73,15 @@ export const workspaceAtom = atomWithStorage<WorkspaceState>('workspaceState', i
 export const isSidePanelOpenAtom = atom(false)
 
 export default function App() {
+  const [isSidePanelOpen] = useAtom(isSidePanelOpenAtom)
+
   return (
-    <div className="h-screen flex flex-col">
-      <TitleBar />
-      <div className="flex flex-row flex-grow">
-        <ActivityPanel />
-        <SidePanel />
+    <div className="flex flex-row h-screen">
+      <ActivityPanel />
+      {isSidePanelOpen && <SidePanel />}
+      <div className="m-2 ml-0 shadow-lg bg-dark-1 rounded-lg flex-grow">
         <ChatPanel />
       </div>
-    </div >
+    </div>
   )
 }
