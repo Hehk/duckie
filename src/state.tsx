@@ -1,163 +1,226 @@
-import { createMachine, assign } from 'xstate';
+import { createMachine, assign, interpret } from "xstate"
+import { createActorContext } from "@xstate/react"
+
+export type Workspace = {
+  id: string
+  name: string
+  path: string
+}
+
+export type Modal = "none" | "create_workspace"
 
 interface ModelContext {
-  id: string;
-  machine: typeof modelMachine;
+  id: string
+  machine: typeof modelMachine
 }
 
 type ModelEvent =
-  | { type: 'LOAD' }
-  | { type: 'SET_UP' }
-  | { type: 'READY' }
-  | { type: 'ERROR' }
-  | { type: 'RETRY' };
+  | { type: "LOAD" }
+  | { type: "SET_UP" }
+  | { type: "READY" }
+  | { type: "ERROR" }
+  | { type: "RETRY" }
 
 export const modelMachine = createMachine<ModelContext, ModelEvent>({
-  id: 'model',
-  initial: 'unloaded',
+  id: "model",
+  initial: "unloaded",
   states: {
     unloaded: {
       on: {
-        LOAD: 'loading',
+        LOAD: "loading",
       },
     },
     loading: {
       on: {
-        SET_UP: 'setup',
-        ERROR: 'error',
+        SET_UP: "setup",
+        ERROR: "error",
       },
     },
     setup: {
       on: {
-        READY: 'ready',
-        ERROR: 'error',
+        READY: "ready",
+        ERROR: "error",
       },
     },
     ready: {
       on: {
-        ERROR: 'error',
+        ERROR: "error",
       },
     },
     error: {
       on: {
-        RETRY: 'unloaded',
+        RETRY: "unloaded",
       },
     },
   },
-});
+})
 
 interface AppState {
-  workspaces: any[];
-  focusedWorkspace: any | null;
-  modal: string;
-  models: ModelContext[];
+  workspaces: Workspace[]
+  focusedWorkspace: string | null
+  modal: Modal
+  models: ModelContext[]
+  isSidePanelOpen: boolean
 }
 
 type AppEvent =
-  | { type: 'FOCUS_WORKSPACE'; workspace: any }
-  | { type: 'CLEAR_FOCUS' }
-  | { type: 'OPEN_MODAL'; modal: string }
-  | { type: 'CLOSE_MODAL' }
-  | { type: 'ADD_MODEL'; modelId: string }
-  | { type: 'DELETE_MODEL'; modelId: string };
+  | { type: "FOCUS_WORKSPACE"; workspace: string }
+  | { type: "ADD_WORKSPACE"; workspace: Workspace }
+  | { type: "CLEAR_FOCUS" }
+  | { type: "OPEN_MODAL"; modal: Modal }
+  | { type: "CLOSE_MODAL" }
+  | { type: "ADD_MODEL"; modelId: string }
+  | { type: "DELETE_MODEL"; modelId: string }
+  | { type: "TOGGLE_SIDE_PANEL" }
 
-export const appMachine = createMachine<AppState, AppEvent>({
-  id: 'app',
-  type: 'parallel',
-  context: {
-    workspaces: [],
-    focusedWorkspace: null,
-    modal: 'none',
-    models: [],
-  },
-  states: {
-    workspace: {
-      initial: 'idle',
-      states: {
-        idle: {
-          on: {
-            FOCUS_WORKSPACE: {
-              target: 'focused',
-              actions: 'setFocusedWorkspace',
+const defaultContext: AppState = {
+  workspaces: [],
+  focusedWorkspace: null,
+  modal: "none",
+  models: [],
+  isSidePanelOpen: false,
+}
+
+export const appMachine = createMachine<AppState, AppEvent>(
+  {
+    id: "app",
+    type: "parallel",
+    context: defaultContext,
+    states: {
+      workspace: {
+        initial: "idle",
+        states: {
+          idle: {
+            on: {
+              FOCUS_WORKSPACE: {
+                target: "focused",
+                actions: "setFocusedWorkspace",
+              },
+              ADD_WORKSPACE: {
+                target: "focused",
+                actions: "addWorkspace",
+              },
+            },
+          },
+          focused: {
+            on: {
+              FOCUS_WORKSPACE: {
+                target: "focused",
+                actions: "setFocusedWorkspace",
+              },
+              ADD_WORKSPACE: {
+                target: "focused",
+                actions: "addWorkspace",
+              },
+              CLEAR_FOCUS: {
+                target: "idle",
+                actions: "clearFocusedWorkspace",
+              },
             },
           },
         },
-        focused: {
-          on: {
-            FOCUS_WORKSPACE: {
-              target: 'focused',
-              actions: 'setFocusedWorkspace',
+      },
+      modal: {
+        initial: "closed",
+        states: {
+          closed: {
+            on: {
+              OPEN_MODAL: {
+                target: "opened",
+                actions: "setModal",
+              },
             },
-            CLEAR_FOCUS: {
-              target: 'idle',
-              actions: 'clearFocusedWorkspace',
+          },
+          opened: {
+            on: {
+              CLOSE_MODAL: {
+                target: "closed",
+                actions: "clearModal",
+              },
+            },
+          },
+        },
+      },
+      models: {
+        initial: "idle",
+        states: {
+          idle: {
+            on: {
+              ADD_MODEL: {
+                actions: "addModel",
+              },
+              DELETE_MODEL: {
+                actions: "deleteModel",
+              },
+            },
+          },
+        },
+      },
+      sidePanel: {
+        initial: "closed",
+        states: {
+          closed: {
+            on: {
+              TOGGLE_SIDE_PANEL: {
+                target: "opened",
+                actions: "openSidePanel",
+              },
+            },
+          },
+          opened: {
+            on: {
+              TOGGLE_SIDE_PANEL: {
+                target: "closed",
+                actions: "closeSidePanel",
+              },
             },
           },
         },
       },
     },
-    modal: {
-      initial: 'closed',
-      states: {
-        closed: {
-          on: {
-            OPEN_MODAL: {
-              target: 'opened',
-              actions: 'setModal',
-            },
-          },
-        },
-        opened: {
-          on: {
-            CLOSE_MODAL: {
-              target: 'closed',
-              actions: 'clearModal',
-            },
-          },
-        },
-      },
-    },
-    models: {
-      initial: 'idle',
-      states: {
-        idle: {
-          on: {
-            ADD_MODEL: {
-              actions: 'addModel',
-            },
-            DELETE_MODEL: {
-              actions: 'deleteModel',
-            },
-          },
-        },
-      },
+  },
+  {
+    actions: {
+      setFocusedWorkspace: assign((context, event) => {
+        if (event.type !== "FOCUS_WORKSPACE") return {}
+        return { focusedWorkspace: event.workspace }
+      }),
+      clearFocusedWorkspace: assign({ focusedWorkspace: null }),
+      addWorkspace: assign((context, event) => {
+        if (event.type !== "ADD_WORKSPACE") return {}
+        const newWorkspace = event.workspace
+        return {
+          workspaces: [...context.workspaces, newWorkspace],
+          focusedWorkspace: newWorkspace.id,
+        }
+      }),
+      setModal: assign((context, event) => {
+        console.log(context, event)
+        if (event.type !== "OPEN_MODAL") return {}
+        return { modal: event.modal }
+      }),
+      clearModal: assign({ modal: "none" }),
+      addModel: assign((context, event) => {
+        if (event.type !== "ADD_MODEL") return {}
+        const newModel = {
+          id: event.modelId,
+          machine: modelMachine,
+        }
+        return { models: [...context.models, newModel] }
+      }),
+      deleteModel: assign((context, event) => {
+        if (event.type !== "DELETE_MODEL") return {}
+
+        return {
+          models: context.models.filter((model) => model.id !== event.modelId),
+        }
+      }),
+      openSidePanel: assign({ isSidePanelOpen: true }),
+      closeSidePanel: assign({ isSidePanelOpen: false }),
     },
   },
-}, {
-  actions: {
-    setFocusedWorkspace: assign((context, event) => {
-      if (event.type !== 'FOCUS_WORKSPACE') return {};
-      return { focusedWorkspace: event.workspace };
-    }),
-    clearFocusedWorkspace: assign({ focusedWorkspace: null }),
-    setModal: assign((context, event) => {
-      if (event.type !== 'OPEN_MODAL') return {};
-      return { modal: event.modal };
-    }),
-    clearModal: assign({ modal: 'none' }),
-    addModel: assign((context, event) => {
-      if (event.type !== 'ADD_MODEL') return {};
-      const newModel = {
-        id: event.modelId,
-        machine: modelMachine,
-      };
-      return { models: [...context.models, newModel] };
-    }),
-    deleteModel: assign((context, event) => {
-      if (event.type !== 'DELETE_MODEL') return {};
+)
 
-      return { models: context.models.filter(model => model.id !== event.modelId) };
-    }),
+const StateContext = createActorContext(appMachine, {})
 
-  },
-});
+export default StateContext

@@ -12,11 +12,13 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^1.2.0",
+    "@xstate/react": "^3.2.1",
     "cmdk": "^0.2.0",
-    "jotai": "^2.0.3",
+    "hotkeys-js": "^3.10.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^4.8.0"
+    "react-icons": "^4.8.0",
+    "xstate": "^4.37.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.2.2",

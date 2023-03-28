@@ -73,7 +73,7 @@ module.exports = {
         4: opacity("#FAF8F5", "#ffffff", 0.25),
       },
       purple: defaultColors.purple,
-      white: "#abb2bf",
+      zinc: defaultColors.zinc,
     },
     extend: {},
   },
