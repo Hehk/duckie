@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useAtom } from "jotai";
 import { workspaceAtom, Message } from "../app";
 
-export default function ChatPanel() {
+export default function ChatPage() {
   const [{ workspaces, selectedWorkspace, selectedChat }, setWorkspace] = useAtom(workspaceAtom);
   const [input, setInput] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -56,15 +56,15 @@ export default function ChatPanel() {
 
 
   return (
-    <div className="flex flex-col flex-grow">
-      <div className="overflow-auto space-y-4 flex-grow">
+    <div className="flex flex-col flex-grow h-full">
+      <div className="overflow-auto flex-grow">
         {messages.map((message) => (
-          <div key={message.id} className="text-zinc-50 p-2 last:border-b border-zinc-900" >
+          <div key={message.id} className="bg-white text-dark-1 rounded m-2 p-2" >
             {message.text}
           </div>
         ))}
       </div>
-      <div className="flex items-center p-4">
+      <div className="flex items-center p-2">
         <textarea
           ref={inputRef}
           className="flex-grow border p-2 rounded"
@@ -73,7 +73,7 @@ export default function ChatPanel() {
           onKeyDown={handleKeyPress}
         />
         <button
-          className="ml-2 bg-blue-500 text-white px-4 py-2 rounded"
+          className="m-2 bg-purple-700 text-white px-4 py-2 rounded"
           onClick={handleSubmit}
         >
           Send
