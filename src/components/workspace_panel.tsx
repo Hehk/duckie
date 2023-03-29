@@ -14,7 +14,6 @@ const WorkspacePanel: React.FC = () => {
   const [state, send] = StateContext.useActor()
 
   const handleCreateWorkspaceClick = () => {
-    console.log("test")
     send({ type: "OPEN_MODAL", modal: "create_workspace" })
   }
 
