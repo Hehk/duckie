@@ -1,4 +1,4 @@
-import { createMachine, assign, interpret } from "xstate"
+import { createMachine, assign } from "xstate"
 import { createActorContext } from "@xstate/react"
 
 export type Workspace = {
@@ -81,11 +81,22 @@ const defaultContext: AppState = {
   isSidePanelOpen: false,
 }
 
+const loadStateFromLocalStorage = (): AppState => {
+  const storedState = localStorage.getItem("appState")
+  return storedState ? JSON.parse(storedState) : defaultContext
+}
+
+const saveStateToLocalStorage = (state: AppState) => {
+  localStorage.setItem("appState", JSON.stringify(state))
+}
+
+const initialContext: AppState = loadStateFromLocalStorage()
+
 export const appMachine = createMachine<AppState, AppEvent>(
   {
     id: "app",
     type: "parallel",
-    context: defaultContext,
+    context: initialContext,
     states: {
       workspace: {
         initial: "idle",
@@ -221,6 +232,9 @@ export const appMachine = createMachine<AppState, AppEvent>(
   },
 )
 
-const StateContext = createActorContext(appMachine, {})
+const StateContext = createActorContext(appMachine, {}, (state) => {
+  if (!state.changed) return // Ignore transitions that didn't change the state.
+  saveStateToLocalStorage(state.context)
+})
 
 export default StateContext
