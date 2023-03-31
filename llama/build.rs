@@ -1,22 +1,14 @@
 extern crate bindgen;
+extern crate cc;
 
 use std::env;
 use std::path::PathBuf;
 
 fn main() {
-    // Tell cargo to look for shared libraries in the specified directory
-    println!("cargo:rustc-link-search=/path/to/lib");
-
-    // Tell cargo to tell rustc to link the system bzip2
-    // shared library.
-    println!("cargo:rustc-link-lib=bz2");
-
-    // Tell cargo to invalidate the built crate whenever the wrapper changes
-    println!("cargo:rerun-if-changed=llama.h");
-
     generate_binding("llama");
-    generate_binding("utils");
     generate_binding("ggml");
+
+    compile_cpp_files();
 }
 
 fn generate_binding(file: &str) {
@@ -33,4 +25,18 @@ fn generate_binding(file: &str) {
     bindings
         .write_to_file(out_path.join(format!("{}.rs", file)))
         .expect("Couldn't write bindings!");
+}
+
+fn compile_cpp_files() {
+    // Compile llama.cpp
+    cc::Build::new()
+        .cpp(true)
+        .flag("-std=c++11")
+        .file("llama.cpp/llama.cpp")
+        .compile("libllama.a");
+
+    // Compile ggml.c
+    cc::Build::new()
+        .file("llama.cpp/ggml.c")
+        .compile("libggml.a");
 }

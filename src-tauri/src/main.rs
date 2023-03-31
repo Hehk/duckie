@@ -49,4 +49,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![chat])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+
+    // let llama_context = llama::llama_init_from_file();
+    // println!("LLAMA Context {:?}", llama_context)
 }
