@@ -43,7 +43,7 @@ impl Drop for LlamaContext {
 }
 
 mod tests {
-    use std::path;
+    use std::{ffi::CStr, io::Write, path};
 
     use super::*;
 
@@ -103,58 +103,116 @@ mod tests {
         assert!(!tokens.is_empty(), "Tokenized output is empty");
     }
 
-    // #[test]
-    // fn generate_response() {
-    //     let params = llama_context_params::new();
-    //     let path_model = "models/gpt4all-lora-quantized.bin";
+    #[test]
+    fn generate_response() {
+        let params = llama_context_params::new();
+        let path_model = "models/gpt4all-lora-quantized.bin";
 
-    //     let mut ctx = LlamaContext::new_from_file(path_model, params)
-    //         .expect("Failed to load Llama context from file");
+        let mut ctx = LlamaContext::new_from_file(path_model, params)
+            .expect("Failed to load Llama context from file");
 
-    //     let input_text = "This is a test.";
-    //     let add_bos = true;
+        let input_text = "This is a test.";
+        let add_bos = true;
 
-    //     let c_input_text =
-    //         CString::new(input_text).expect("Failed to convert input_text to CString");
+        let c_input_text =
+            CString::new(input_text).expect("Failed to convert input_text to CString");
 
-    //     let max_tokens = input_text.len() + add_bos as usize;
-    //     let mut tokens: Vec<llama_token> = vec![llama_token::default(); max_tokens];
+        let max_tokens = input_text.len() + add_bos as usize;
+        let mut embd_inp: Vec<i32> = vec![llama_token::default(); max_tokens];
 
-    //     let n_tokens = unsafe {
-    //         llama_tokenize(
-    //             ctx.ctx,
-    //             c_input_text.as_ptr(),
-    //             tokens.as_mut_ptr(),
-    //             max_tokens.try_into().unwrap(),
-    //             add_bos,
-    //         )
-    //     };
+        let n_tokens = unsafe {
+            llama_tokenize(
+                ctx.ctx,
+                c_input_text.as_ptr(),
+                embd_inp.as_mut_ptr(),
+                max_tokens.try_into().unwrap(),
+                add_bos,
+            )
+        };
+        embd_inp.resize(n_tokens as usize, 0);
 
-    //     let n_predict = 128;
-    //     let n_threads = 4;
+        let n_predict = 128;
+        let n_threads = 4;
+        let mut n_remain = n_predict;
+        // TODO get this from the model
+        let n_ctx = 512;
+        let mut n_past = 0;
 
-    //     let mut embd = Vec::new();
-    //     let mut embd_inp = tokens.clone();
-    //     let mut last_n_tokens = vec![llama_token::default(); n_ctx];
+        let mut embd: Vec<i32> = Vec::new();
+        let mut n_consumed = 0;
+        let mut last_n_tokens: Vec<llama_token> = vec![0; n_ctx];
 
-    //     while n_remain != 0 {
-    //         unsafe {
-    //             if llama_eval(
-    //                 ctx.ctx,
-    //                 embd.as_ptr(),
-    //                 embd.len().try_into().unwrap(),
-    //                 n_past,
-    //                 n_threads,
-    //             ) != 0
-    //             {
-    //                 panic!("Failed to eval");
-    //             }
-    //         }
-    //         n_past += <usize as TryInto<i32>>::try_into(embd.len()).unwrap();
-    //         embd.clear();
+        println!("embd len: {:?}", embd.len());
+        println!("embd content: {:?}", embd);
+        println!("embd_inp len: {:?}", embd_inp.len());
 
-    //         // Process the remaining code to sample tokens, update last_n_tokens, and display text.
-    //         // ...
-    //     }
-    // }
+        while n_remain != 0 {
+            if embd.len() > 0 {
+                if n_past + embd.len() > n_ctx {
+                    let n_keep = 0;
+                    let n_left = n_past - n_keep;
+
+                    n_past = n_keep;
+
+                    // insert n_left/2 tokens at the start of embd from last_n_tokens
+                    embd.splice(0..0, last_n_tokens.iter().cloned().take(n_left / 2));
+                }
+
+                unsafe {
+                    if llama_eval(
+                        ctx.ctx,
+                        embd.as_ptr(),
+                        embd.len().try_into().unwrap(),
+                        n_past.try_into().unwrap(),
+                        n_threads,
+                    ) != 0
+                    {
+                        panic!("Failed to eval");
+                    }
+                }
+            }
+
+            n_past += embd.len();
+            embd.clear();
+
+            let mut id: llama_token = 0;
+            let top_k = 40;
+            let top_p = 0.9;
+            let temp = 0.8;
+            let repeat_penalty = 1.1;
+            let repeat_last_n = 64;
+
+            print!("{} ", id);
+            let logits = unsafe { llama_get_logits(ctx.ctx) };
+            let id = unsafe {
+                llama_sample_top_p_top_k(
+                    ctx.ctx,
+                    last_n_tokens
+                        .as_ptr()
+                        .offset((n_ctx - repeat_last_n) as isize),
+                    repeat_last_n as i32,
+                    top_k,
+                    top_p,
+                    temp,
+                    repeat_penalty,
+                )
+            };
+
+            embd.push(id);
+            n_remain -= 1;
+
+            let output = unsafe {
+                // loop through embd_inp and get a string for each
+                embd.iter()
+                    .map(|token| {
+                        let cstr_ptr = llama_token_to_str(ctx.ctx, *token);
+                        let cstr = CStr::from_ptr(cstr_ptr);
+                        cstr.to_string_lossy().into_owned()
+                    })
+                    .collect::<Vec<String>>()
+                    .join("")
+            };
+            print!("{}", output);
+        }
+    }
 }
