@@ -1,9 +1,10 @@
 import { createMachine, assign } from "xstate"
-import { useActor, useMachine } from "@xstate/react"
+import { useMachine } from "@xstate/react"
 import StateContext from "../state"
 import SidePanelContainer from "./side_panel_container"
 import styled from "../utils/styled"
 import { FiPlus, FiSettings } from "react-icons/fi"
+import ToolPanelEslint from "./tool_panel_eslint"
 
 type ChatTab = `chat_${string}`
 type ActiveTab = "eslint" | "types" | "diffs" | "changes" | ChatTab | "settings"
@@ -68,10 +69,10 @@ const workspaceMachine = createMachine<WorkspaceContext, WorkspaceEvent>(
 
 const SidePanelButton = styled<{ focused: boolean }>(
   "button",
-  "SidePanelButton rounded-lg text-zinc-900 hover:bg-zinc-50 hover:bg-opacity-90 hover:shadow-md text-lg text-left p-2 capitalize mr-2 mb-2",
+  "SidePanelButton rounded-lg text-zinc-900 hover:bg-zinc-50 hover:bg-opacity-90 hover:shadow-layered text-lg text-left p-2 capitalize mr-2 mb-2",
   ({ focused }, className) => {
     if (focused) {
-      return `${className} bg-zinc-50 bg-opacity-90 shadow-md`
+      return `${className} bg-zinc-50 bg-opacity-90 shadow-layered`
     }
     return className
   },
@@ -139,6 +140,13 @@ const SidePanel: React.FC<SidePanelProps> = ({
   )
 }
 
+function Tab({ tab, path }: { tab: ActiveTab; path: string }) {
+  if (tab === "eslint") {
+    return <ToolPanelEslint path={path} />
+  }
+  return <h1>{tab}</h1>
+}
+
 const Workspace: React.FC = () => {
   const [globalState] = StateContext.useActor()
   const [workspaceState, sendWorkspace] = useMachine(workspaceMachine)
@@ -149,9 +157,7 @@ const Workspace: React.FC = () => {
   // TODO add a no workspace selected screen
   if (!workspace) return null
 
-  const title =
-    workspaces.find((workspace) => workspace.id === focusedWorkspace)?.name ||
-    "Workspace"
+  const { path, name } = workspace
 
   const setActiveTab = (tab: ActiveTab) => {
     sendWorkspace({ type: "CHANGE_TAB", tab })
@@ -165,15 +171,15 @@ const Workspace: React.FC = () => {
     <div className="workspace h-full flex-grow p-2 pl-0 flex flex-row">
       {globalState.context.isSidePanelOpen && (
         <SidePanel
-          title={title}
+          title={name}
           setActiveTab={setActiveTab}
           activeTab={workspaceState.context.activeTab}
           chatTabs={workspaceState.context.chatTabs}
           createChat={createChat}
         />
       )}
-      <div className="main-panel bg-dark-1 flex flex-grow rounded">
-        <h1>{workspaceState.context.activeTab}</h1>
+      <div className="main-panel bg-dark-1 flex flex-grow rounded-lg shadow-layered">
+        <Tab tab={workspaceState.context.activeTab} path={path} />
       </div>
     </div>
   )

@@ -48,7 +48,11 @@ module.exports = {
       sans: ["Inter", "sans-serif"],
       mono: ["JetBrains Mono", "monospace"],
     },
+    boxShadow: {
+      layered: `0 1px 1px hsl(0deg 0% 0% / 0.075), 0 2px 2px hsl(0deg 0% 0% / 0.075), 0 3px 3px hsl(0deg 0% 0% / 0.075), 0 4px 4px hsl(0deg 0% 0% / 0.075), 0 16px 16px hsl(0deg 0% 0% / 0.075)`
+    },
     colors: {
+      transparent: "transparent",
       uno: {
         1: "#d6e9ff",
         2: "#abb2bf",

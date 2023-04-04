@@ -1,52 +1,34 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-// TODO eventually setup some kind of config file
-const SERVER_URL: &str = "https://f992-172-83-13-4.ngrok.io";
+use std::process::Command;
+use std::str;
 
-#[derive(serde::Serialize)]
-struct ChatResponse {
-    content: String,
-}
-
-#[derive(serde::Deserialize)]
-struct ModelOutput {
-    output: String,
-}
-
-// Temporary function to test the chat function
 #[tauri::command]
-async fn chat(content: &str) -> Result<ChatResponse, String> {
-    Ok(ChatResponse {
-        content: content.to_string(),
-    })
-}
+async fn run_eslint(path: String) -> Result<String, String> {
+    println!("Run eslint against: {}", path);
 
-// #[tauri::command]
-// async fn chat(content: &str) -> Result<ChatResponse, String> {
-//     let request_body = serde_json::json!({
-//         "content": content,
-//     });
-//     let response = match reqwest::Client::new()
-//         .post(format!("{}/chat", SERVER_URL))
-//         .body(request_body.to_string())
-//         .send()
-//         .await
-//     {
-//         Ok(response) => {
-//             let model_output = response.json::<ModelOutput>().await.unwrap();
-//             model_output.output
-//         }
-//         Err(_) => "Error".to_string(),
-//     };
-//     Ok(ChatResponse {
-//         content: response.to_string(),
-//     })
-// }
+    let mut cmd = Command::new("eslint");
+    cmd.arg("--format=json .");
+    cmd.current_dir(path);
+
+    let output = cmd.output().expect("Failed to execute the command");
+    if output.status.success() {
+        let output_str = str::from_utf8(&output.stdout).expect("Output contains invalid UTF-8");
+
+        println!("Output: {}", output_str);
+        Ok(output_str.to_string())
+    } else {
+        let stdout = str::from_utf8(&output.stdout).expect("Output contains invalid UTF-8");
+        eprintln!("Stdout: {}", stdout);
+        let stderr = str::from_utf8(&output.stderr).expect("Output contains invalid UTF-8");
+        Err(stderr)?
+    }
+}
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![chat])
+        .invoke_handler(tauri::generate_handler![run_eslint])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 
