@@ -78,6 +78,8 @@ module.exports = {
       },
       purple: defaultColors.purple,
       zinc: defaultColors.zinc,
+      green: defaultColors.green,
+      red: defaultColors.red,
     },
     extend: {},
   },
